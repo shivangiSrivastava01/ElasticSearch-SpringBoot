@@ -21,7 +21,8 @@ spring.data.elasticsearch.cluster-names=docker-cluster
 spring.data.elasticsearch.cluster-node=localhost:9200
 
 Docker Setup for Elastic Search
-	1) Pull the elastic search docker image by using command: docker pull docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+	
+ 	1) Pull the elastic search docker image by using command: docker pull docker.elastic.co/elasticsearch/elasticsearch:8.13.0
  	2) run the image using command given below: 
   		docker run -p 9200:9200 -d --name elasticsearch \
 		-e "discovery.type=single-node" \
