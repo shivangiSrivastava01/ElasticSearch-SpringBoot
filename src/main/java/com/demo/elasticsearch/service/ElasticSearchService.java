@@ -1,4 +1,4 @@
-package com.demo.ElasticSearch.service;
+package com.demo.elasticsearch.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
@@ -9,7 +9,7 @@ import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import com.demo.ElasticSearch.entity.Product;
+import com.demo.elasticsearch.entity.Product;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,9 @@ import java.util.List;
 public class ElasticSearchService {
 
 
-    private ElasticsearchClient esSearchClient;
+    private final ElasticsearchClient esSearchClient;
+
+    private static final String PRODUCTS = "products";
 
     @Autowired
     public ElasticSearchService(ElasticsearchClient esClient) {
@@ -33,18 +35,18 @@ public class ElasticSearchService {
 
     public List<Product> search(String searchElement) throws IOException {
 
-        List<Product> list = new ArrayList<Product>();
+        List<Product> list = new ArrayList<>();
 
 
         BoolQuery boolQuery = BoolQuery.of(b->b
                                  .should(MatchQuery.of(m -> m.field("name").query(searchElement))._toQuery())
-                                 .should(PrefixQuery.of(p -> p.field("category").value(searchElement))._toQuery())
+                                 .should(MatchQuery.of(p -> p.field("category").query(searchElement))._toQuery())
                                  .should(PrefixQuery.of(p -> p.field("description").value(searchElement))._toQuery())
                 );
 
 
         SearchRequest searchRequest = SearchRequest.of(s ->s
-                                        .index("products")
+                                        .index(PRODUCTS)
                                         .query(boolQuery._toQuery()));
 
         SearchResponse<Product> response = esSearchClient.search(searchRequest, Product.class);
@@ -60,24 +62,30 @@ public class ElasticSearchService {
         return list;
     }
 
-    public String insertItemEntries(List<Product> products) throws IOException {
+    public String insertItemEntries(List<Product> products) {
+        try {
+            for (Product p : products) {
+                IndexResponse response = esSearchClient.index(i -> i
+                        .index(PRODUCTS)
+                        .id(p.getUuid())
+                        .document(p)
+                );
 
-        for(Product p:products) {
-            IndexResponse response = esSearchClient.index(i -> i
-                    .index("products")
-                    .id(p.getUuid())
-                    .document(p)
-            );
+                log.info("Indexed document with ID: {}, Response: {}", p.getUuid(), response.result());
+            }
+
+            log.info("Items inserted successfully!");
+
+            return "Items Inserted Successfully";
+        } catch (IOException e) {
+            log.error("Error inserting items into Elasticsearch", e);
+            return "Failed to insert items";
         }
-
-        log.info("Inserted SuccessFully!!!!!!");
-
-        return "Items Inserted Successfully";
     }
 
     public String deleteItemEntry(String elementIdToBeDeleted) throws IOException {
 
-       DeleteResponse response =  esSearchClient.delete(d -> d.index("products").id(elementIdToBeDeleted));
+       DeleteResponse response =  esSearchClient.delete(d -> d.index(PRODUCTS).id(elementIdToBeDeleted));
        if(StringUtils.isEmpty(response.toString())){
             return "Item Deleted!!!!";
        }

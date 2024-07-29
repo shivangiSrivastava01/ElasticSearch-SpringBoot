@@ -1,4 +1,4 @@
-package com.demo.ElasticSearch.entity;
+package com.demo.elasticsearch.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

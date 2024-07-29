@@ -1,7 +1,7 @@
-package com.demo.ElasticSearch.controller;
+package com.demo.elasticsearch.controller;
 
-import com.demo.ElasticSearch.entity.Product;
-import com.demo.ElasticSearch.service.ElasticSearchService;
+import com.demo.elasticsearch.entity.Product;
+import com.demo.elasticsearch.service.ElasticSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
